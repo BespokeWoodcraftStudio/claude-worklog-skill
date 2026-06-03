@@ -84,8 +84,9 @@ the code like this?" the worklog usually answers faster than reading source.
 
 ## Where this fits (optional, if the project uses them)
 
-The worklog is the **manually-curated narrative** layer. It pairs well with, but does not
-require, other knowledge layers:
+The worklog is the **agent-authored, curated narrative** layer — Claude writes each entry
+automatically at the end of a response (it is not maintained by hand). It pairs well with,
+but does not require, other knowledge layers:
 
 - **Auto-captured session memory** (e.g. claude-mem) — the automatic wide net; worklog is
   the curated highlights of the same history.

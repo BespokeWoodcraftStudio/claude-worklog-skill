@@ -76,11 +76,18 @@ Both steps are idempotent — re-run any time to update. Options:
 
 ### Global vs. one project
 
-The default install above is **global** — the skill and the CLAUDE.md rule live under
-`~/.claude/`, so worklog is active in **every** repo on your machine.
+**Want worklog to be _part of a project_ — committed to the repo and shared with everyone
+who clones it? Install it with `--project`.** A global install only sets it up for *you*
+on *this* machine; it does **not** travel with the repo.
 
-To enable it for **just one repo** instead (you only want it on a specific project, or
-you want to commit it so collaborators get it too), use `--project`:
+- **Global** (default) — the skill + CLAUDE.md rule live under `~/.claude/`, so worklog is
+  active in **every** repo on your machine, but nothing is added to any repo.
+- **`--project`** — installs the skill + rule **into the repo itself**
+  (`.claude/skills/worklog/` + `CLAUDE.md` with a repo-relative path). **Commit them**, and
+  anyone who clones the repo gets worklog automatically — even if they never installed the
+  global skill.
+
+Use `--project`:
 
 ```bash
 ./install.sh --project                 # install into the current repo
@@ -146,24 +153,27 @@ worklog is a **complementary memory skill**. It's one of a small family of memor
 knowledge tools for Claude Code (and other agents) that overlap a little but each answer
 a *different* question. Used together they let an agent — or you — come back to a cold
 project and get oriented fast. worklog requires none of them, and adds the layer the
-others don't have: the curated **why**.
+others don't have: the curated **why**. (You don't keep the worklog by hand — **Claude
+writes each entry automatically**, at the end of every substantive response, because a
+one-line rule in your `CLAUDE.md` codifies it.)
 
-| Tool | Holds | Source | Answers | Reach for it when |
+| Tool | Holds | How it's written | Answers | Reach for it when |
 |---|---|---|---|---|
-| **worklog** (this) | curated narrative — what/why/how, decisions, lessons | you write it | *"how did the project get here, and why was this done?"* | recording a unit of work; understanding the intent behind code |
-| **[claude-mem](https://github.com/thedotmack/claude-mem)** | auto-captured observations + a searchable session timeline | automatic | *"have we done this before, and how did we solve it?"* | recalling past sessions at the **start** of a task |
-| **[graphify](https://github.com/safishamsi/graphify)** | the codebase's structure — files, symbols, call/concept relationships, central "god nodes", clusters | automatic | *"where is X, and how does the code fit together?"* | navigating or mapping unfamiliar code |
-| fact memory (e.g. a `memory/` notes folder) | distilled durable facts, preferences, decisions | you write it | *"who owns this / how does the user want it?"* | recalling an atomic fact out of order |
+| **worklog** (this) | curated narrative — what/why/how, decisions, lessons | **Claude writes it automatically** at the end of each response (curated) | *"how did the project get here, and why was this done?"* | recording a unit of work; understanding the intent behind code |
+| **[claude-mem](https://github.com/thedotmack/claude-mem)** | auto-captured observations + a searchable session timeline | auto-captured in the background | *"have we done this before, and how did we solve it?"* | recalling past sessions at the **start** of a task |
+| **[graphify](https://github.com/safishamsi/graphify)** | the codebase's structure — files, symbols, call/concept relationships, central "god nodes", clusters | auto-generated from code | *"where is X, and how does the code fit together?"* | navigating or mapping unfamiliar code |
+| fact memory (e.g. a `memory/` notes folder) | distilled durable facts, preferences, decisions | written deliberately (you or Claude) | *"who owns this / how does the user want it?"* | recalling an atomic fact out of order |
 
 How they complement each other:
 
 - **worklog ↔ [claude-mem](https://github.com/thedotmack/claude-mem)** — both are
-  *narrative*, but different: claude-mem is the **automatic, comprehensive** net (it
-  records everything you do, AI-compresses it, and serves it back via search + timeline);
-  worklog is the **curated highlights with reasoning**, committed to the repo so it
-  travels with the code and reads like a changelog of *intent*. Use claude-mem to **find**
-  prior work; treat the worklog as the canonical **why**. (A worklog entry can even cite a
-  claude-mem observation id.)
+  narrative and both are written **by the agent, automatically** — the difference is
+  *how*. claude-mem **mechanically captures everything** you do in the background and
+  AI-compresses it (the comprehensive net). worklog is a **deliberately authored, curated
+  entry** Claude writes at the end of each response — the reasoning, decisions, and
+  lessons — committed to the repo so it reads like a changelog of *intent*. Use claude-mem
+  to **find** prior work; treat the worklog as the canonical **why**. (A worklog entry can
+  even cite a claude-mem observation id.)
 - **worklog ↔ [graphify](https://github.com/safishamsi/graphify)** — **orthogonal**.
   graphify answers *where / what* in the code (structure); worklog answers *why* it's that
   way (intent). A worklog entry links to the files; graphify shows how those files relate.

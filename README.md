@@ -54,26 +54,30 @@ gotchas**, **Follow-ups**, and **Links** are added when relevant.
 ## Install
 
 ```bash
-git clone https://github.com/<you>/claude-worklog-skill.git
+git clone https://github.com/BespokeWoodcraftStudio/claude-worklog-skill.git
 cd claude-worklog-skill
-./install.sh            # copies the skill into ~/.claude/skills/worklog
+./install.sh
 ```
 
-That makes the `worklog` skill available in **all** your Claude Code sessions on this
-machine (it's a user-level skill in `~/.claude/skills/`).
+`install.sh` does two things, so the skill is used **automatically**:
 
-Optional flags make it fully hands-off:
+1. Installs the `worklog` skill into `~/.claude/skills/worklog` — available in **all**
+   your Claude Code sessions on this machine (a user-level skill).
+2. **Adds a rule to your `~/.claude/CLAUDE.md`** instructing the agent to append a
+   journal entry at the end of each substantive response, in every project.
+
+Both steps are idempotent — re-run any time to update. Options:
 
 ```bash
-./install.sh --rule     # also add a rule to ~/.claude/CLAUDE.md so the agent logs every
-                        # substantive response, in every project, by default
-./install.sh --hook     # also wire a global Stop-hook reminder (nudges if a day of work
-                        # goes unlogged); non-blocking
-./install.sh --rule --hook
+./install.sh --hook      # also wire a non-blocking Stop-hook reminder (nudges if a day
+                         # of work goes unlogged)
+./install.sh --no-rule   # install the skill only, without touching CLAUDE.md
 ```
 
-Manual install (no script): copy the `worklog/` folder to `~/.claude/skills/worklog/`
-and `chmod +x ~/.claude/skills/worklog/scripts/*.sh`.
+Manual install (no script): copy the `worklog/` folder to `~/.claude/skills/worklog/`,
+run `chmod +x ~/.claude/skills/worklog/scripts/*.sh`, and (for auto-use) add a one-line
+rule to `~/.claude/CLAUDE.md` telling the agent to run the script at the end of each
+response.
 
 ---
 
@@ -138,8 +142,8 @@ Stop hook is just a **reminder** if a day goes unlogged.
 
 ```bash
 rm -rf ~/.claude/skills/worklog
-# and remove the "worklog" block from ~/.claude/CLAUDE.md and the hook from
-# ~/.claude/settings.json if you added them with --rule / --hook.
+# also remove the worklog-skill block from ~/.claude/CLAUDE.md (added by default),
+# and the worklog hook from ~/.claude/settings.json if you installed with --hook.
 ```
 
 ## License

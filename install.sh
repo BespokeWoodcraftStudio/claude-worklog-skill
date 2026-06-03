@@ -2,10 +2,10 @@
 #
 # install.sh — install the worklog skill into ~/.claude/skills (user-global).
 #
-#   ./install.sh            copy the skill into ~/.claude/skills/worklog
-#   ./install.sh --rule     also add a "log every response" rule to ~/.claude/CLAUDE.md
+#   ./install.sh            install the skill AND add a "log every response" rule to
+#                           ~/.claude/CLAUDE.md, so the agent uses it automatically
 #   ./install.sh --hook     also wire a non-blocking Stop-hook reminder (~/.claude/settings.json)
-#   ./install.sh --rule --hook
+#   ./install.sh --no-rule  install the skill only, without touching CLAUDE.md
 #
 # All steps are idempotent — safe to re-run to update.
 set -euo pipefail
@@ -14,12 +14,14 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 CLAUDE_HOME="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
 DEST="$CLAUDE_HOME/skills/worklog"
 
-want_rule=0; want_hook=0
+# The CLAUDE.md rule is added by DEFAULT so the skill is used automatically.
+want_rule=1; want_hook=0
 for a in "$@"; do
   case "$a" in
-    --rule) want_rule=1 ;;
-    --hook) want_hook=1 ;;
-    -h|--help) sed -n '2,12p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    --no-rule) want_rule=0 ;;
+    --rule)    want_rule=1 ;;
+    --hook)    want_hook=1 ;;
+    -h|--help) sed -n '3,10p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
     *) echo "install: unknown option '$a' (try --help)" >&2; exit 2 ;;
   esac
 done
@@ -30,7 +32,7 @@ cp -R "$HERE/worklog/." "$DEST/"
 chmod +x "$DEST/scripts/"*.sh
 echo "✓ skill installed → $DEST"
 
-# 2) Optional: global CLAUDE.md rule (idempotent via markers).
+# 2) Add the global CLAUDE.md rule so the agent logs automatically (idempotent).
 if [ "$want_rule" = 1 ]; then
   md="$CLAUDE_HOME/CLAUDE.md"
   touch "$md"
@@ -56,7 +58,7 @@ The journal lives at `docs/worklog/` in the current repo. When getting up to spe
 project, **read `docs/worklog/INDEX.md` first**. Full format: the `worklog` skill (`/worklog`).
 <!-- worklog-skill:end -->
 RULE
-    echo "✓ CLAUDE.md rule added → $md"
+    echo "✓ CLAUDE.md rule added → $md (entries will be written automatically)"
   fi
 fi
 
@@ -86,5 +88,7 @@ else:
 PY
 fi
 
-echo "Done. The 'worklog' skill is now available in all your Claude Code sessions."
-[ "$want_rule" = 1 ] || echo "Tip: re-run with --rule to log automatically, --hook for a reminder."
+echo "Done. The 'worklog' skill is installed for all your Claude Code sessions."
+[ "$want_rule" = 1 ] && echo "  • CLAUDE.md updated — entries are written automatically."
+[ "$want_hook" = 1 ] || echo "  • Tip: re-run with --hook to also add a Stop-hook reminder."
+exit 0

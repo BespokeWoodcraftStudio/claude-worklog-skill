@@ -71,13 +71,41 @@ Both steps are idempotent — re-run any time to update. Options:
 ```bash
 ./install.sh --hook      # also wire a non-blocking Stop-hook reminder (nudges if a day
                          # of work goes unlogged)
-./install.sh --no-rule   # install the skill only, without touching CLAUDE.md
+./install.sh --no-rule   # install the skill files only, without touching CLAUDE.md
 ```
 
-Manual install (no script): copy the `worklog/` folder to `~/.claude/skills/worklog/`,
-run `chmod +x ~/.claude/skills/worklog/scripts/*.sh`, and (for auto-use) add a one-line
-rule to `~/.claude/CLAUDE.md` telling the agent to run the script at the end of each
-response.
+### Global vs. one project
+
+The default install above is **global** — the skill and the CLAUDE.md rule live under
+`~/.claude/`, so worklog is active in **every** repo on your machine.
+
+To enable it for **just one repo** instead (you only want it on a specific project, or
+you want to commit it so collaborators get it too), use `--project`:
+
+```bash
+./install.sh --project                 # install into the current repo
+./install.sh --project /path/to/repo   # …or a specific repo
+./install.sh --project --hook          # + a project-scoped Stop-hook reminder
+```
+
+A project install writes into that repo instead of your home dir:
+
+| | Global (default) | `--project` |
+|---|---|---|
+| Skill files | `~/.claude/skills/worklog/` | `<repo>/.claude/skills/worklog/` |
+| Auto-use rule | `~/.claude/CLAUDE.md` | `<repo>/CLAUDE.md` |
+| Hook (`--hook`) | `~/.claude/settings.json` | `<repo>/.claude/settings.json` |
+| Applies to | every repo | that one repo |
+
+**Commit** `.claude/skills/worklog/` and `CLAUDE.md` after a project install to share the
+skill with anyone who clones the repo — it then works even if they never installed the
+global one. The scopes are independent: you can keep the global install and still commit
+a project copy into a specific repo.
+
+Manual install (no script): copy the `worklog/` folder to `~/.claude/skills/worklog/`
+(global) or `<repo>/.claude/skills/worklog/` (project), run `chmod +x` on
+`worklog/scripts/*.sh`, and (for auto-use) add a one-line rule to the matching `CLAUDE.md`
+telling the agent to run the script at the end of each response.
 
 ---
 
@@ -112,20 +140,46 @@ Set `WORKLOG_DIR` to put it somewhere custom (or to journal outside a git repo).
 
 ---
 
-## How it fits with other memory
+## Works alongside graphify and claude-mem
 
-The worklog is the **manually-curated narrative** layer. It complements — but doesn't
-require — other knowledge layers you may use:
+worklog is a **complementary memory skill**. It's one of a small family of memory /
+knowledge tools for Claude Code (and other agents) that overlap a little but each answer
+a *different* question. Used together they let an agent — or you — come back to a cold
+project and get oriented fast. worklog requires none of them, and adds the layer the
+others don't have: the curated **why**.
 
-| Layer | Holds | Source |
-|---|---|---|
-| **worklog** (this) | curated what/why/how narrative | manual |
-| auto session memory (e.g. claude-mem) | observations + timeline | automatic |
-| fact memory (e.g. memory files) | distilled durable facts | manual |
-| code-structure graph (e.g. graphify) | files, symbols, relations | automatic |
+| Tool | Holds | Source | Answers | Reach for it when |
+|---|---|---|---|---|
+| **worklog** (this) | curated narrative — what/why/how, decisions, lessons | you write it | *"how did the project get here, and why was this done?"* | recording a unit of work; understanding the intent behind code |
+| **[claude-mem](https://github.com/thedotmack/claude-mem)** | auto-captured observations + a searchable session timeline | automatic | *"have we done this before, and how did we solve it?"* | recalling past sessions at the **start** of a task |
+| **[graphify](https://github.com/safishamsi/graphify)** | the codebase's structure — files, symbols, call/concept relationships, central "god nodes", clusters | automatic | *"where is X, and how does the code fit together?"* | navigating or mapping unfamiliar code |
+| fact memory (e.g. a `memory/` notes folder) | distilled durable facts, preferences, decisions | you write it | *"who owns this / how does the user want it?"* | recalling an atomic fact out of order |
 
-Rule of thumb: recall at task **start** (search your auto memory + skim the worklog
-index), log at task **end** (write a worklog entry).
+How they complement each other:
+
+- **worklog ↔ [claude-mem](https://github.com/thedotmack/claude-mem)** — both are
+  *narrative*, but different: claude-mem is the **automatic, comprehensive** net (it
+  records everything you do, AI-compresses it, and serves it back via search + timeline);
+  worklog is the **curated highlights with reasoning**, committed to the repo so it
+  travels with the code and reads like a changelog of *intent*. Use claude-mem to **find**
+  prior work; treat the worklog as the canonical **why**. (A worklog entry can even cite a
+  claude-mem observation id.)
+- **worklog ↔ [graphify](https://github.com/safishamsi/graphify)** — **orthogonal**.
+  graphify answers *where / what* in the code (structure); worklog answers *why* it's that
+  way (intent). A worklog entry links to the files; graphify shows how those files relate.
+  Structure shifts as code changes; the worklog's reasoning stays true.
+- **fact memory** — the place for atomic, durable facts you need out of chronological
+  order. When a worklog entry contains one, also write it as a fact and cross-link.
+
+A good loop with all of them:
+
+1. **Start** — search **claude-mem** and skim `docs/worklog/INDEX.md` to recall what was
+   done and why.
+2. **Work** — use **graphify** to navigate the code (`graphify query` / `path` / `explain`).
+3. **End** — write a **worklog** entry; if a durable fact emerged, add a fact-memory note.
+
+All three are independent open-source tools — install whichever you like; worklog works
+with or without them.
 
 ---
 

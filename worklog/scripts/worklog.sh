@@ -67,9 +67,20 @@ if [ ! -f "$file" ]; then
   printf '# Worklog — %s\n\n> Chronological work journal. See [INDEX.md](./INDEX.md) for the\n> cross-entry map. Format: the `worklog` skill.\n' "$date" > "$file"
 fi
 
-# Next sequence number for today (zero-padded).
-n="$(grep -c "· WL-$date-" "$file" 2>/dev/null || true)"; n="${n:-0}"
-id="$(printf 'WL-%s-%03d' "$date" "$((n + 1))")"
+# Next sequence number for today = the HIGHEST id already in the file, + 1.
+# Not a count: ids can have gaps (entries moved to another journal, or removed),
+# and a count would re-mint an id that already exists. 10# forces base 10 so 008
+# and 009 are not read as bad octal. The `|| true` matters: this script runs under
+# `set -euo pipefail`, and grep exits 1 on a brand-new day file with no entries.
+n="$(grep -oE "· WL-$date-[0-9]{3} ·" "$file" 2>/dev/null | sed -E 's/.*-([0-9]{3}) ·/\1/' | sort -n | tail -1 || true)"
+n="${n:-000}"
+seq=$((10#$n + 1))
+id="$(printf 'WL-%s-%03d' "$date" "$seq")"
+# Belt and braces: never hand back an id the file already carries.
+while grep -q "· $id ·" "$file" 2>/dev/null; do
+  seq=$((seq + 1))
+  id="$(printf 'WL-%s-%03d' "$date" "$seq")"
+done
 
 # Append the entry.
 {
